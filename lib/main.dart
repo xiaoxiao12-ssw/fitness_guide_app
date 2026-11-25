@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'pages/exercise_list_page.dart';
+import 'pages/diet_estimator_page.dart';
+import 'pages/fat_loss_predictor_page.dart';
 import 'pages/favorites_page.dart';
 
 void main() {
@@ -41,8 +43,8 @@ class _FitnessGuideAppState extends State<FitnessGuideApp> {
         colorScheme: ColorScheme.fromSeed(
           brightness: Brightness.light,
           seedColor: const Color(0xFFEA580C),
-          primary: const Color(0xFFEA580C), // 活力燃脂橙
-          secondary: const Color(0xFF0284C7), // 力量极光蓝
+          primary: const Color(0xFFEA580C),
+          secondary: const Color(0xFF0284C7),
           surface: Colors.white,
         ),
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
@@ -118,6 +120,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _pages = const [
     ExerciseListPage(),
+    DietEstimatorPage(),
+    FatLossPredictorPage(),
     FavoritesPage(),
   ];
 
@@ -135,7 +139,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           // 悬浮深浅色切换按钮
           Positioned(
             top: MediaQuery.of(context).padding.top + 6,
-            right: 16,
+            right: 12,
             child: Material(
               color: Colors.transparent,
               child: IconButton(
@@ -165,7 +169,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           elevation: 0,
           backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
           indicatorColor: const Color(0xFFEA580C).withOpacity(0.18),
-          height: 65,
+          height: 66,
           onDestinationSelected: (index) {
             HapticFeedback.selectionClick();
             setState(() => _currentIndex = index);
@@ -174,7 +178,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             NavigationDestination(
               icon: Icon(Icons.fitness_center_outlined, size: 22),
               selectedIcon: Icon(Icons.fitness_center_rounded, color: Color(0xFFEA580C), size: 24),
-              label: '动作库 (58+)',
+              label: '动作库',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.restaurant_outlined, size: 22),
+              selectedIcon: Icon(Icons.restaurant_rounded, color: Color(0xFFEA580C), size: 24),
+              label: '饮食估算',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.trending_down_outlined, size: 22),
+              selectedIcon: Icon(Icons.trending_down_rounded, color: Color(0xFFEA580C), size: 24),
+              label: '减脂预测',
             ),
             NavigationDestination(
               icon: Icon(Icons.bookmark_outline_rounded, size: 22),

@@ -20,6 +20,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
   void initState() {
     super.initState();
     _loadFavorites();
+    FavoriteService.version.addListener(_loadFavorites);
+  }
+
+  @override
+  void dispose() {
+    FavoriteService.version.removeListener(_loadFavorites);
+    super.dispose();
   }
 
   Future<void> _loadFavorites() async {

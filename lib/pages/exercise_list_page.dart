@@ -27,6 +27,12 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
     _loadFavorites();
   }
 
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadFavorites() async {
     final ids = await FavoriteService.getFavoriteIds();
     if (mounted) {
@@ -38,6 +44,19 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
     HapticFeedback.lightImpact();
     await FavoriteService.toggleFavorite(id);
     _loadFavorites();
+  }
+
+  IconData _equipmentIcon(String eq) {
+    switch (eq) {
+      case '哑铃/杠铃':
+        return Icons.fitness_center_rounded;
+      case '龙门架/绳索':
+        return Icons.cable_rounded;
+      case '徒手/单双杠':
+        return Icons.accessibility_new_rounded;
+      default:
+        return Icons.apps_rounded;
+    }
   }
 
   @override
@@ -55,8 +74,8 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: const [
+        title: const Row(
+          children: [
             Icon(Icons.fitness_center_rounded, color: Color(0xFFEA580C), size: 22),
             SizedBox(width: 8),
             Text(
@@ -70,12 +89,13 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
         children: [
           // 1. 搜索框
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
             color: isDark ? const Color(0xFF0F172A) : Colors.white,
             child: TextField(
               controller: _searchCtrl,
               decoration: InputDecoration(
-                hintText: "搜索 58+ 真实动作（如 卧推、引体向上、哑铃、三角肌）",
+                hintText: "搜动作/器械（如 哑铃卧推、引体、龙门架）",
+                hintStyle: const TextStyle(fontSize: 13),
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -98,38 +118,44 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
             ),
           ),
 
-          // 2. 部位主分类标签栏
+          // 2. 顶部普通健身房器械筛选栏（全部 / 哑铃/杠铃 / 龙门架/绳索 / 徒手/单双杠）
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
             color: isDark ? const Color(0xFF0F172A) : Colors.white,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: ExerciseRepository.getBodyParts().map((part) {
-                  final isSelected = _selectedBodyPart == part;
-                  final count = part == '全部'
-                      ? ExerciseRepository.getAllExercises().length
-                      : ExerciseRepository.filterExercises(bodyPart: part).length;
-
+                children: ExerciseRepository.getEquipments().map((eq) {
+                  final isSel = _selectedEquipment == eq;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
-                      label: Text("$part ($count)"),
-                      selected: isSelected,
-                      selectedColor: const Color(0xFFEA580C).withOpacity(0.2),
+                      avatar: Icon(
+                        _equipmentIcon(eq),
+                        size: 15,
+                        color: isSel
+                            ? const Color(0xFF10B981)
+                            : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                      ),
+                      label: Text(eq),
+                      selected: isSel,
+                      showCheckmark: false,
+                      selectedColor: const Color(0xFF10B981).withOpacity(0.18),
+                      side: BorderSide(
+                        color: isSel
+                            ? const Color(0xFF10B981)
+                            : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                      ),
                       labelStyle: TextStyle(
                         fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected
-                            ? const Color(0xFFEA580C)
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                        color: isSel
+                            ? const Color(0xFF10B981)
                             : (isDark ? Colors.grey[300] : const Color(0xFF334155)),
                       ),
-                      onSelected: (val) {
+                      onSelected: (_) {
                         HapticFeedback.selectionClick();
-                        setState(() {
-                          _selectedBodyPart = part;
-                          _selectedSubMuscle = '全部细分';
-                        });
+                        setState(() => _selectedEquipment = eq);
                       },
                     ),
                   );
@@ -138,61 +164,106 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
             ),
           ),
 
-          // 3. 细分肌束 & 器械多维筛选栏
+          // 3. 部位分类 + 细分肌束筛选栏
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
             color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 细分肌束
-                if (subMuscles.length > 1)
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: subMuscles.map((sub) {
-                        final isSel = _selectedSubMuscle == sub;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: FilterChip(
-                            label: Text(sub, style: const TextStyle(fontSize: 11)),
-                            selected: isSel,
-                            selectedColor: const Color(0xFF0284C7).withOpacity(0.2),
-                            checkmarkColor: const Color(0xFF0284C7),
-                            onSelected: (val) {
-                              HapticFeedback.selectionClick();
-                              setState(() => _selectedSubMuscle = val ? sub : '全部细分');
-                            },
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                // 器械类型筛选
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: ExerciseRepository.getEquipments().map((eq) {
-                      final isSel = _selectedEquipment == eq;
+                    children: ExerciseRepository.getBodyParts().map((part) {
+                      final isSelected = _selectedBodyPart == part;
+                      final count = ExerciseRepository.filterExercises(
+                        bodyPart: part,
+                        equipment: _selectedEquipment,
+                      ).length;
+
                       return Padding(
                         padding: const EdgeInsets.only(right: 6),
-                        child: FilterChip(
-                          label: Text(eq, style: const TextStyle(fontSize: 11)),
-                          selected: isSel,
-                          selectedColor: const Color(0xFF10B981).withOpacity(0.2),
-                          checkmarkColor: const Color(0xFF10B981),
-                          onSelected: (val) {
+                        child: ChoiceChip(
+                          label: Text("$part ($count)"),
+                          selected: isSelected,
+                          showCheckmark: false,
+                          visualDensity: VisualDensity.compact,
+                          selectedColor: const Color(0xFFEA580C).withOpacity(0.2),
+                          labelStyle: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            color: isSelected
+                                ? const Color(0xFFEA580C)
+                                : (isDark ? Colors.grey[300] : const Color(0xFF334155)),
+                          ),
+                          onSelected: (_) {
                             HapticFeedback.selectionClick();
-                            setState(() => _selectedEquipment = val ? eq : '全部');
+                            setState(() {
+                              _selectedBodyPart = part;
+                              _selectedSubMuscle = '全部细分';
+                            });
                           },
                         ),
                       );
                     }).toList(),
                   ),
                 ),
+                if (subMuscles.length > 1)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: subMuscles.map((sub) {
+                          final isSel = _selectedSubMuscle == sub;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: FilterChip(
+                              label: Text(sub, style: const TextStyle(fontSize: 11)),
+                              selected: isSel,
+                              visualDensity: VisualDensity.compact,
+                              selectedColor: const Color(0xFF0284C7).withOpacity(0.2),
+                              checkmarkColor: const Color(0xFF0284C7),
+                              onSelected: (val) {
+                                HapticFeedback.selectionClick();
+                                setState(() => _selectedSubMuscle = val ? sub : '全部细分');
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-          const Divider(height: 1),
+
+          // 顶部排序说明条
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "普通健身房优先：哑铃 / 杠铃 / 龙门架 / 徒手前置",
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+                  ),
+                ),
+                Text(
+                  "共 ${filteredList.length} 个",
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFEA580C),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
           // 4. 动作列表展示
           Expanded(
@@ -205,7 +276,7 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
                         const SizedBox(height: 12),
                         const Text("未找到符合条件的动作", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 6),
-                        Text("请尝试切换分类或精简搜索关键词", style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                        Text("试试切换器械标签或清除关键词", style: TextStyle(fontSize: 12, color: Colors.grey[500])),
                       ],
                     ),
                   )
@@ -225,6 +296,9 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
   }
 
   Widget _buildExerciseListItem(Exercise ex, bool isFav, bool isDark) {
+    final cue = ExerciseRepository.getQuickCue(ex);
+    final eqColor = ex.isCommonGymFriendly ? const Color(0xFF10B981) : const Color(0xFF64748B);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -256,25 +330,25 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // 缩略图
+              // 动作缩略图
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  width: 80,
-                  height: 80,
+                  width: 78,
+                  height: 78,
                   color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                   child: Image.network(
                     ex.imageUrl0,
                     fit: BoxFit.contain,
                     errorBuilder: (ctx, err, stack) => Center(
-                      child: Icon(Icons.fitness_center_rounded, color: Colors.grey[400], size: 32),
+                      child: Icon(Icons.fitness_center_rounded, color: Colors.grey[400], size: 30),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
 
-              // 文本与标签信息
+              // 动作名 + 器械标签 + 1 句核心口诀
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,7 +358,7 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEA580C).withOpacity(0.12),
+                            color: const Color(0xFFEA580C).withOpacity(0.14),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -300,22 +374,40 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0284C7).withOpacity(0.12),
+                            color: eqColor.withOpacity(0.14),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             ex.equipment,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF0284C7),
+                              color: eqColor,
                             ),
                           ),
                         ),
+                        if (!ex.isCommonGymFriendly) ...[
+                          const SizedBox(width: 5),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF59E0B).withOpacity(0.14),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              "可平替",
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFF59E0B),
+                              ),
+                            ),
+                          ),
+                        ],
                         const Spacer(),
                         Row(
                           children: List.generate(ex.difficulty, (i) {
-                            return const Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B));
+                            return const Icon(Icons.star_rounded, size: 12, color: Color(0xFFF59E0B));
                           }),
                         ),
                       ],
@@ -330,23 +422,23 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
-                      ex.englishName,
+                      "💡 ${cue.action}",
                       style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.grey[400] : Colors.grey[500],
+                        fontSize: 12,
+                        color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+                        fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 3),
                     Text(
-                      "目标: ${ex.subMuscles.join(' · ')}",
+                      "${ex.recommendedSets} · ${ex.repRange} · 休${ex.restSeconds}秒",
                       style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
-                        fontWeight: FontWeight.w500,
+                        fontSize: 10.5,
+                        color: isDark ? Colors.grey[400] : Colors.grey[500],
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -355,7 +447,7 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
                 ),
               ),
 
-              // 收藏按钮
+              // 收藏按钮（保留原有 FavoriteService）
               IconButton(
                 icon: Icon(
                   isFav ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,

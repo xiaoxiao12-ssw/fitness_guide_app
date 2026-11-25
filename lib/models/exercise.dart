@@ -112,7 +112,13 @@ class Exercise {
   String get rawUrl1 =>
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/$dbDirectory/1.jpg";
 
-  /// Bilibili 高清视频教学跳转 URL
+  /// Bilibili 通俗动作教学跳转 URL（自动拼接“动作中文名 + 教学 避坑”）
   String get bilibiliSearchUrl =>
-      "https://search.bilibili.com/all?keyword=${Uri.encodeComponent('$name 标准动作教学')}";
+      "https://search.bilibili.com/all?keyword=${Uri.encodeComponent('$name 教学 避坑')}";
+
+  /// 是否属于普通健身房容易找到的自由重量 / 龙门架 / 徒手器械
+  bool get isCommonGymFriendly => equipment != '固定器械';
+
+  /// 是否属于需要特定器械（可提供一键哑铃/徒手平替）
+  bool get needsEquipmentSwap => equipment != '自重';
 }

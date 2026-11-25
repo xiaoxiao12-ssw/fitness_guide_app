@@ -19,13 +19,21 @@ def apply_branding():
         if 'android:icon="' in content:
             content = re.sub(r'android:icon="[^"]*"', 'android:icon="@mipmap/ic_launcher"', content, count=1)
         
-        # 3. Add INTERNET permission if not present
+        # 3. Add INTERNET & CAMERA permissions if not present
         if 'android.permission.INTERNET' not in content:
             internet_perm = '    <uses-permission android:name="android.permission.INTERNET"/>\n'
-            # Insert before <application
             if '<application' in content:
                 content = content.replace('<application', internet_perm + '    <application', 1)
                 print("Added android.permission.INTERNET")
+
+        if 'android.permission.CAMERA' not in content:
+            camera_perm = (
+                '    <uses-permission android:name="android.permission.CAMERA"/>\n'
+                '    <uses-feature android:name="android.hardware.camera" android:required="false"/>\n'
+            )
+            if '<application' in content:
+                content = content.replace('<application', camera_perm + '    <application', 1)
+                print("Added android.permission.CAMERA")
 
         # 4. Add <queries> for url_launcher
         if '<queries>' not in content:
