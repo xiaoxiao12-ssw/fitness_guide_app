@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'theme/app_theme.dart';
 import 'pages/exercise_list_page.dart';
 import 'pages/diet_estimator_page.dart';
 import 'pages/fat_loss_predictor_page.dart';
@@ -11,6 +12,10 @@ void main() {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+  ));
   runApp(const FitnessGuideApp());
 }
 
@@ -22,13 +27,18 @@ class FitnessGuideApp extends StatefulWidget {
 }
 
 class _FitnessGuideAppState extends State<FitnessGuideApp> {
-  ThemeMode _themeMode = ThemeMode.dark; // 健身 App 默认采用硬核暗黑高级质感
+  ThemeMode _themeMode = ThemeMode.dark;
 
   void _toggleTheme() {
     HapticFeedback.lightImpact();
     setState(() {
       _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     });
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness:
+          _themeMode == ThemeMode.dark ? Brightness.light : Brightness.dark,
+    ));
   }
 
   @override
@@ -37,62 +47,8 @@ class _FitnessGuideAppState extends State<FitnessGuideApp> {
       title: '少伟健身通',
       debugShowCheckedModeBanner: false,
       themeMode: _themeMode,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(
-          brightness: Brightness.light,
-          seedColor: const Color(0xFFEA580C),
-          primary: const Color(0xFFEA580C),
-          secondary: const Color(0xFF0284C7),
-          surface: Colors.white,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          titleTextStyle: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F172A),
-          ),
-          iconTheme: IconThemeData(color: Color(0xFF0F172A)),
-        ),
-        cardTheme: const CardThemeData(
-          color: Colors.white,
-          elevation: 0,
-        ),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          brightness: Brightness.dark,
-          seedColor: const Color(0xFFEA580C),
-          primary: const Color(0xFFEA580C),
-          secondary: const Color(0xFF38BDF8),
-          surface: const Color(0xFF1E293B),
-        ),
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          titleTextStyle: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFF8FAFC),
-          ),
-          iconTheme: IconThemeData(color: Color(0xFFF8FAFC)),
-        ),
-        cardTheme: const CardThemeData(
-          color: Color(0xFF1E293B),
-          elevation: 0,
-        ),
-      ),
+      theme: AppTheme.lightTheme(),
+      darkTheme: AppTheme.darkTheme(),
       home: MainNavigationScreen(
         isDark: _themeMode == ThemeMode.dark,
         onToggleTheme: _toggleTheme,
@@ -128,28 +84,46 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
+    final activeAccent = AppTheme.accentPrimary(isDark);
 
     return Scaffold(
+      extendBody: false,
       body: Stack(
         children: [
           IndexedStack(
             index: _currentIndex,
             children: _pages,
           ),
-          // 悬浮深浅色切换按钮
+          // 悬浮深浅色快速切换胶囊按钮
           Positioned(
-            top: MediaQuery.of(context).padding.top + 6,
-            right: 12,
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 14,
             child: Material(
               color: Colors.transparent,
-              child: IconButton(
-                tooltip: isDark ? "切换为浅色主题" : "切换为硬核暗黑主题",
-                icon: Icon(
-                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                  color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF64748B),
-                  size: 22,
+              child: InkWell(
+                onTap: widget.onToggleTheme,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.darkSurfaceElevated.withOpacity(0.9)
+                        : Colors.white.withOpacity(0.92),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                    color: isDark ? AppTheme.neonLime : const Color(0xFF475569),
+                    size: 19,
+                  ),
                 ),
-                onPressed: widget.onToggleTheme,
               ),
             ),
           ),
@@ -157,45 +131,77 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-              width: 0.8,
+          color: isDark ? AppTheme.darkSurface : Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.4 : 0.07),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(0, Icons.fitness_center_rounded, '动作库', activeAccent, isDark),
+                _navItem(1, Icons.restaurant_rounded, '饮食估算', activeAccent, isDark),
+                _navItem(2, Icons.auto_graph_rounded, '减脂预测', activeAccent, isDark),
+                _navItem(3, Icons.bookmark_rounded, '我的收藏', activeAccent, isDark),
+              ],
             ),
           ),
         ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          elevation: 0,
-          backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-          indicatorColor: const Color(0xFFEA580C).withOpacity(0.18),
-          height: 66,
-          onDestinationSelected: (index) {
-            HapticFeedback.selectionClick();
-            setState(() => _currentIndex = index);
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.fitness_center_outlined, size: 22),
-              selectedIcon: Icon(Icons.fitness_center_rounded, color: Color(0xFFEA580C), size: 24),
-              label: '动作库',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.restaurant_outlined, size: 22),
-              selectedIcon: Icon(Icons.restaurant_rounded, color: Color(0xFFEA580C), size: 24),
-              label: '饮食估算',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.trending_down_outlined, size: 22),
-              selectedIcon: Icon(Icons.trending_down_rounded, color: Color(0xFFEA580C), size: 24),
-              label: '减脂预测',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.bookmark_outline_rounded, size: 22),
-              selectedIcon: Icon(Icons.bookmark_rounded, color: Color(0xFFEA580C), size: 24),
-              label: '我的收藏',
-            ),
-          ],
+      ),
+    );
+  }
+
+  Widget _navItem(
+    int index,
+    IconData icon,
+    String label,
+    Color activeAccent,
+    bool isDark,
+  ) {
+    final selected = _currentIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _currentIndex = index);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 6),
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          decoration: BoxDecoration(
+            color: selected ? activeAccent.withOpacity(isDark ? 0.14 : 0.12) : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: selected ? 23 : 21,
+                color: selected ? activeAccent : AppTheme.textSecondary(isDark),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                  color: selected ? activeAccent : AppTheme.textSecondary(isDark),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

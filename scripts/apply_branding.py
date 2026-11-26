@@ -15,9 +15,12 @@ def apply_branding():
         content = re.sub(r'android:label="[^"]*"', 'android:label="少伟健身通"', content, count=1)
         print("Updated android:label to 少伟健身通")
         
-        # 2. Ensure icon is @mipmap/ic_launcher
+        # 2. Ensure icon is @mipmap/ic_launcher & allow cleartext traffic for in-app video preview
         if 'android:icon="' in content:
             content = re.sub(r'android:icon="[^"]*"', 'android:icon="@mipmap/ic_launcher"', content, count=1)
+        if 'android:usesCleartextTraffic' not in content and '<application' in content:
+            content = content.replace('<application', '<application\n        android:usesCleartextTraffic="true"', 1)
+            print("Added android:usesCleartextTraffic=true")
         
         # 3. Add INTERNET & CAMERA permissions if not present
         if 'android.permission.INTERNET' not in content:

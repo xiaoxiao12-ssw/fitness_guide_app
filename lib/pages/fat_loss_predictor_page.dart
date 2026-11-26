@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../models/fat_loss_profile.dart';
 import '../services/diet_service.dart';
 import '../services/fat_loss_service.dart';
+import '../theme/app_theme.dart';
 
 class FatLossPredictorPage extends StatefulWidget {
   const FatLossPredictorPage({super.key});
@@ -96,19 +97,24 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
                 children: [
                   // 1. 预测结果 Hero 看板 + 进度条
                   Container(
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                        colors: [Color(0xFF141B29), Color(0xFF0C1018)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(
-                        color: proj.hasDeficit
-                            ? const Color(0xFF10B981).withOpacity(0.45)
-                            : const Color(0xFFF59E0B).withOpacity(0.45),
-                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (proj.hasDeficit
+                                  ? AppTheme.neonLime
+                                  : AppTheme.electroOrange)
+                              .withOpacity(0.16),
+                          blurRadius: 22,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,15 +125,15 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEA580C).withOpacity(0.22),
+                                color: AppTheme.neonLime.withOpacity(0.16),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: const Text(
-                                "本地算法实时推演",
+                                "AI 代谢实时推演",
                                 style: TextStyle(
-                                  color: Color(0xFFFB923C),
+                                  color: AppTheme.neonLime,
                                   fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
                             ),
@@ -135,18 +141,18 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
                               "${_profile.currentWeightKg.toStringAsFixed(1)} → ${_profile.targetWeightKg.toStringAsFixed(1)} kg",
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
                         Text(
                           headlineText,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 19,
+                            fontSize: 19.5,
                             fontWeight: FontWeight.w900,
                             height: 1.3,
                           ),
@@ -156,7 +162,7 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
                           sublineText,
                           style: const TextStyle(color: Colors.white70, fontSize: 12),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 16),
 
                         // 减脂效率可视化进度条
                         Row(
@@ -168,26 +174,26 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
                                   ? "约 -${((proj.dailyDeficit * 7) / 7700).toStringAsFixed(2)} kg / 周"
                                   : "0.00 kg / 周",
                               style: const TextStyle(
-                                color: Color(0xFF34D399),
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.bold,
+                                color: AppTheme.neonLime,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 7),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                           child: LinearProgressIndicator(
                             value: deficitQuality,
-                            minHeight: 9,
+                            minHeight: 8,
                             backgroundColor: Colors.white12,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              proj.hasDeficit ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                              proj.hasDeficit ? AppTheme.neonLime : AppTheme.electroOrange,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 16),
 
                         // 3 项核心代谢指标
                         Row(
@@ -197,7 +203,7 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
                                 "每日热量缺口",
                                 "${proj.dailyDeficit >= 0 ? '-' : '+'}${proj.dailyDeficit.abs().round()}",
                                 "kcal/天",
-                                proj.hasDeficit ? const Color(0xFF34D399) : const Color(0xFFFCA5A5),
+                                proj.hasDeficit ? AppTheme.neonLime : const Color(0xFFFCA5A5),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -206,7 +212,7 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
                                 "单次训练消耗",
                                 "${proj.singleWorkoutBurn.round()}",
                                 "力${proj.strengthBurn.round()}+氧${proj.cardioBurn.round()}",
-                                const Color(0xFFFB923C),
+                                AppTheme.electroOrange,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -215,7 +221,7 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
                                 "日均总消耗",
                                 "${proj.dailyTdee.round()}",
                                 "BMR ${proj.bmr.round()}",
-                                const Color(0xFF38BDF8),
+                                AppTheme.iceCyan,
                               ),
                             ),
                           ],
@@ -227,14 +233,8 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
 
                   // 2. 每周体重变化预测曲线（纯本地 CustomPainter，无需联网）
                   Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                      ),
-                    ),
+                    padding: const EdgeInsets.all(18),
+                    decoration: AppTheme.cardDecoration(isDark, radius: 22),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -464,11 +464,10 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
 
   Widget _heroMetric(String label, String value, String sub, Color valueColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
         children: [
@@ -476,7 +475,7 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
           const SizedBox(height: 4),
           Text(
             value,
-            style: TextStyle(color: valueColor, fontSize: 16, fontWeight: FontWeight.w900),
+            style: TextStyle(color: valueColor, fontSize: 16.5, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 2),
           Text(
@@ -498,25 +497,26 @@ class _FatLossPredictorPageState extends State<FatLossPredictorPage> {
     required Widget child,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-        ),
-      ),
+      padding: const EdgeInsets.all(18),
+      decoration: AppTheme.cardDecoration(isDark, radius: 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: iconColor, size: 19),
-              const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w900)),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(icon, color: iconColor, size: 17),
+              ),
+              const SizedBox(width: 9),
+              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           child,
         ],
       ),

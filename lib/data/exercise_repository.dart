@@ -3,6 +3,8 @@ import 'chest_data.dart';
 import 'back_data.dart';
 import 'shoulder_data.dart';
 import 'arms_data.dart';
+import 'legs_data.dart';
+import 'core_data.dart';
 import 'exercise_quick_guides.dart';
 
 class ExerciseRepository {
@@ -11,9 +13,11 @@ class ExerciseRepository {
     ...backExercises,
     ...shoulderExercises,
     ...armsExercises,
+    ...legsExercises,
+    ...coreExercises,
   ];
 
-  /// 普通健身房易得器械优先排序权重（哑铃/杠铃 > 龙门架/绳索 > 徒手/单双杠 > 固定器械）
+  /// 普通健身房易得器械优先排序权重（哑铃 > 杠铃 > 龙门架绳索 > 徒手自重）
   static int _equipmentPriority(String eq) {
     switch (eq) {
       case '哑铃':
@@ -24,7 +28,6 @@ class ExerciseRepository {
         return 2;
       case '自重':
         return 3;
-      case '固定器械':
       default:
         return 4;
     }
@@ -36,6 +39,8 @@ class ExerciseRepository {
     return List.unmodifiable(sorted);
   }
 
+  static int get totalCount => _allExercises.length;
+
   static Exercise? getExerciseById(String id) {
     try {
       return _allExercises.firstWhere((e) => e.id == id);
@@ -44,23 +49,25 @@ class ExerciseRepository {
     }
   }
 
-  static List<String> getBodyParts() => ['全部', '胸部', '背部', '肩部', '手臂'];
+  static List<String> getBodyParts() => ['全部', '胸部', '背部', '肩部', '手臂', '腿臀', '核心'];
 
-  /// 适配普通健身房的 4 大高频器械筛选标签
+  /// 适配普通健身房的 4 大高频黄金器械筛选标签
   static List<String> getEquipments() => [
         '全部',
-        '哑铃/杠铃',
+        '哑铃',
+        '杠铃',
         '龙门架/绳索',
         '徒手/单双杠',
       ];
 
-  /// 判断动作器械是否匹配筛选标签
   static bool matchesEquipmentFilter(Exercise item, String filter) {
     switch (filter) {
       case '全部':
         return true;
-      case '哑铃/杠铃':
-        return item.equipment == '哑铃' || item.equipment == '杠铃';
+      case '哑铃':
+        return item.equipment == '哑铃';
+      case '杠铃':
+        return item.equipment == '杠铃';
       case '龙门架/绳索':
         return item.equipment == '绳索';
       case '徒手/单双杠':
@@ -74,10 +81,10 @@ class ExerciseRepository {
   static ExerciseQuickCue getQuickCue(Exercise ex) {
     final mapped = exerciseQuickCueMap[ex.id];
     if (mapped != null) return mapped;
-    return const ExerciseQuickCue(
-      setup: '挺胸沉肩，收紧核心站稳',
-      action: '控制下放，目标肌群发力推拉',
-      warning: '别耸肩甩腰，避免关节代偿',
+    return ExerciseQuickCue(
+      setup: ex.prepCue,
+      action: ex.concentricCue,
+      warning: '控制节奏不借力，保护关节',
     );
   }
 
@@ -94,7 +101,6 @@ class ExerciseRepository {
       }
     }
 
-    // 兜底自动匹配同部位的哑铃或自重动作
     if (result.isEmpty) {
       final candidates = _allExercises.where((item) =>
           item.id != ex.id &&
@@ -108,19 +114,25 @@ class ExerciseRepository {
 
   /// 获取指定部位的所有细分肌束选项
   static List<String> getSubMusclesForPart(String bodyPart) {
-    if (bodyPart == '胸部') {
-      return ['全部细分', '上胸', '中胸', '下胸', '胸肌中缝'];
-    } else if (bodyPart == '背部') {
-      return ['全部细分', '背阔肌', '大圆肌', '菱形肌', '斜方肌', '竖脊肌'];
-    } else if (bodyPart == '肩部') {
-      return ['全部细分', '三角肌前束', '三角肌中束', '三角肌后束'];
-    } else if (bodyPart == '手臂') {
-      return ['全部细分', '肱二头肌', '肱三头肌', '肱肌', '前臂肌群'];
+    switch (bodyPart) {
+      case '胸部':
+        return ['全部细分', '上胸', '中胸', '下胸', '胸肌中缝'];
+      case '背部':
+        return ['全部细分', '背阔肌', '大圆肌', '菱形肌', '斜方肌', '竖脊肌'];
+      case '肩部':
+        return ['全部细分', '三角肌前束', '三角肌中束', '三角肌后束', '斜方肌'];
+      case '手臂':
+        return ['全部细分', '肱二头肌', '肱三头肌', '肱肌', '前臂'];
+      case '腿臀':
+        return ['全部细分', '股四头肌', '臀大肌', '腘绳肌', '小腿'];
+      case '核心':
+        return ['全部细分', '腹直肌', '下腹', '腹斜肌', '深层核心'];
+      default:
+        return ['全部细分'];
     }
-    return ['全部细分'];
   }
 
-  /// 综合多维筛选（默认按普通健身房高频易得器械优先排序）
+  /// 综合多维筛选（按普通健身房高频易得器械优先排序）
   static List<Exercise> filterExercises({
     String bodyPart = '全部',
     String equipment = '全部',
@@ -147,6 +159,7 @@ class ExerciseRepository {
         final matchesQuery = item.name.toLowerCase().contains(q) ||
             item.englishName.toLowerCase().contains(q) ||
             item.targetMuscle.toLowerCase().contains(q) ||
+            item.bodyPart.toLowerCase().contains(q) ||
             item.subMuscles.any((s) => s.toLowerCase().contains(q)) ||
             item.equipment.toLowerCase().contains(q);
         if (!matchesQuery) return false;
@@ -155,7 +168,6 @@ class ExerciseRepository {
       return true;
     }).toList();
 
-    // 默认按普通健身房易得器械优先排序（哑铃/杠铃/龙门架/徒手排在前，固定器械在后）
     list.sort((a, b) => _equipmentPriority(a.equipment).compareTo(_equipmentPriority(b.equipment)));
     return list;
   }

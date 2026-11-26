@@ -4,7 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/exercise.dart';
 import '../data/exercise_repository.dart';
 import '../services/favorite_service.dart';
+import '../theme/app_theme.dart';
 import '../widgets/animated_exercise_image.dart';
+import '../widgets/inline_tutorial_webview.dart';
 
 class ExerciseDetailPage extends StatefulWidget {
   final Exercise exercise;
@@ -17,6 +19,7 @@ class ExerciseDetailPage extends StatefulWidget {
 
 class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
   bool _isFavorite = false;
+  bool _showInlineVideo = false;
 
   @override
   void initState() {
@@ -68,50 +71,61 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
+          padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: Container(
-                  width: 38,
+                  width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.4),
+                    color: Colors.grey.withOpacity(0.35),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               Row(
                 children: [
-                  const Icon(Icons.swap_horiz_rounded, color: Color(0xFF10B981), size: 22),
-                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: AppTheme.mintEmerald.withOpacity(0.16),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.swap_horiz_rounded,
+                      color: AppTheme.mintEmerald,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      "同肌群哑铃/徒手平替推荐",
+                      '同肌群哑铃 / 徒手平替推荐',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textPrimary(isDark),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
-                "没有「${widget.exercise.name}」器械或排队太久？直接换练以下动作，同样精准刺激${widget.exercise.targetMuscle}：",
+                '器械排队或现场没有？直接切换以下动作，同样精准刺激「${widget.exercise.targetMuscle}」：',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+                  color: AppTheme.textSecondary(isDark),
                 ),
               ),
               const SizedBox(height: 14),
@@ -119,25 +133,22 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
                 final altCue = ExerciseRepository.getQuickCue(altEx);
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFF10B981).withOpacity(0.35),
-                    ),
-                  ),
+                  decoration: AppTheme.innerTileDecoration(isDark, radius: 16),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                       child: Container(
                         width: 56,
                         height: 56,
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        color: const Color(0xFFF4F7FC),
+                        padding: const EdgeInsets.all(3),
                         child: Image.network(
-                          altEx.imageUrl0,
+                          altEx.thumbUrl,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.fitness_center_rounded),
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.fitness_center_rounded),
                         ),
                       ),
                     ),
@@ -146,23 +157,27 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
                         Expanded(
                           child: Text(
                             altEx.name,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withOpacity(0.16),
-                            borderRadius: BorderRadius.circular(6),
+                            color: AppTheme.mintEmerald.withOpacity(0.16),
+                            borderRadius: BorderRadius.circular(7),
                           ),
                           child: Text(
                             altEx.equipment,
                             style: const TextStyle(
                               fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF10B981),
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.mintEmerald,
                             ),
                           ),
                         ),
@@ -171,14 +186,18 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        "💡 ${altCue.action}",
+                        altCue.action,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? Colors.grey[300] : const Color(0xFF475569),
+                          color: AppTheme.textSecondary(isDark),
                         ),
                       ),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 15, color: Color(0xFF10B981)),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: AppTheme.mintEmerald,
+                    ),
                     onTap: () {
                       Navigator.of(ctx).pop();
                       Navigator.of(context).pushReplacement(
@@ -206,24 +225,43 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(ex.name),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              ex.name,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+            ),
+            Text(
+              '${ex.bodyPart} · ${ex.equipment} · ${ex.targetMuscle}',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondary(isDark),
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: Icon(
-              _isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-              color: _isFavorite ? const Color(0xFFEA580C) : null,
+              _isFavorite
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_outline_rounded,
+              color: _isFavorite ? AppTheme.electroOrange : null,
             ),
-            tooltip: _isFavorite ? "取消收藏" : "加入收藏",
+            tooltip: _isFavorite ? '取消收藏' : '加入收藏',
             onPressed: _toggleFavorite,
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 32),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 36),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1. 置顶放大动图（支持双指缩放查看发力细节）
+            // 1. 全新连续多帧 GIF + 发力轨迹层 + 4阶段节奏节拍器组件
             AnimatedExerciseImage(
               exercise: ex,
               height: 300,
@@ -231,89 +269,153 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
             ),
             const SizedBox(height: 14),
 
-            // 2. 顶部醒目 B站 30秒教学直达按钮（自动搜“动作名 + 教学 避坑”）
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFB7299), Color(0xFFE11D48)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFB7299).withOpacity(0.35),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ElevatedButton(
-                onPressed: _launchBilibiliTutorial,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "📺 30秒看懂标准动作（B站精讲）",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+            // 2. 双模式视频精讲栏：应用内直接预览 WebView + B站 App 一键精讲
+            Row(
+              children: [
+                Expanded(
+                  flex: 6,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFB7299), AppTheme.emberRed],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.emberRed.withOpacity(0.30),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: 6),
-                    Icon(Icons.open_in_new_rounded, size: 17),
-                  ],
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        HapticFeedback.mediumImpact();
+                        setState(() => _showInlineVideo = !_showInlineVideo);
+                      },
+                      icon: Icon(
+                        _showInlineVideo
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.play_circle_fill_rounded,
+                        size: 19,
+                      ),
+                      label: Text(
+                        _showInlineVideo ? '收起应用内视频' : '应用内看精讲视频',
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 4,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _launchBilibiliTutorial,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        decoration: AppTheme.cardDecoration(isDark, radius: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.open_in_new_rounded,
+                                size: 16, color: Color(0xFFFB7299)),
+                            const SizedBox(width: 5),
+                            Text(
+                              'B站App看',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.textPrimary(isDark),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
-            // 3. 一键器械平替按钮（器械被占/没有器械时直达同肌群哑铃/徒手平替）
+            // 展开后的应用内嵌精简教学 WebView
+            if (_showInlineVideo) ...[
+              const SizedBox(height: 12),
+              InlineTutorialWebView(
+                url: ex.bilibiliMobileSearchUrl,
+                title: ex.name,
+                onOpenExternal: _launchBilibiliTutorial,
+              ),
+            ],
+
+            // 3. 器械被占一键平替入口
             if (ex.needsEquipmentSwap && substitutes.isNotEmpty) ...[
               const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: () => _showSubstitutesSheet(context, substitutes),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF10B981),
-                  side: const BorderSide(color: Color(0xFF10B981), width: 1.4),
-                  backgroundColor: const Color(0xFF10B981).withOpacity(isDark ? 0.12 : 0.08),
-                  padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                ),
-                child: const Text(
-                  "🔄 器械被占/没有器械？点我看平替",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _showSubstitutesSheet(context, substitutes),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.mintEmerald.withOpacity(isDark ? 0.14 : 0.10),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.swap_horiz_rounded,
+                            color: AppTheme.mintEmerald, size: 20),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            '器械被占 / 没有器械？点我看哑铃或徒手平替',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.mintEmerald,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right_rounded,
+                            color: AppTheme.mintEmerald, size: 18),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
 
-            // 4. 3 句大白话极简口诀卡片（扫一眼就能练）
+            // 4. 3 句大白话极简口诀（左侧色条高级卡片，零生硬边框）
             Row(
               children: [
-                const Icon(Icons.bolt_rounded, color: Color(0xFFEA580C), size: 20),
+                const Icon(Icons.bolt_rounded,
+                    color: AppTheme.electroOrange, size: 20),
                 const SizedBox(width: 6),
-                const Text(
-                  "3 句大白话口诀 · 扫一眼就能练",
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0284C7).withOpacity(0.14),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "${ex.bodyPart} · ${ex.equipment}",
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0284C7),
-                    ),
+                Text(
+                  '3 句大白话口诀 · 扫一眼就能练',
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textPrimary(isDark),
                   ),
                 ),
               ],
@@ -321,81 +423,169 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
             const SizedBox(height: 10),
 
             _buildCueCard(
-              stepTag: "准备姿势",
+              stepTag: '准备姿势',
               cueText: cue.setup,
               icon: Icons.accessibility_new_rounded,
-              accentColor: const Color(0xFF0284C7),
+              accentColor: AppTheme.iceCyan,
               isDark: isDark,
             ),
             const SizedBox(height: 10),
             _buildCueCard(
-              stepTag: "发力动作",
+              stepTag: '发力动作',
               cueText: cue.action,
               icon: Icons.local_fire_department_rounded,
-              accentColor: const Color(0xFFEA580C),
+              accentColor: AppTheme.electroOrange,
               isDark: isDark,
             ),
             const SizedBox(height: 10),
             _buildCueCard(
-              stepTag: "避坑提醒",
+              stepTag: '避坑提醒',
               cueText: cue.warning,
               icon: Icons.warning_amber_rounded,
-              accentColor: const Color(0xFFE11D48),
+              accentColor: AppTheme.emberRed,
               isDark: isDark,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // 5. 紧凑训练参数与目标肌群卡
+            // 5. 科学训练参数 + 目标肌群 + 呼吸要领
             Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                ),
-              ),
+              padding: const EdgeInsets.all(16),
+              decoration: AppTheme.cardDecoration(isDark, radius: 22),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Expanded(child: _kpiBox("组数", ex.recommendedSets, isDark)),
+                      Expanded(child: _kpiBox('推荐组数', ex.recommendedSets, isDark)),
                       const SizedBox(width: 8),
-                      Expanded(child: _kpiBox("次数", ex.repRange, isDark)),
+                      Expanded(child: _kpiBox('次数区间', ex.repRange, isDark)),
                       const SizedBox(width: 8),
-                      Expanded(child: _kpiBox("强度", ex.rpe, isDark)),
+                      Expanded(child: _kpiBox('目标强度', ex.rpe, isDark)),
                       const SizedBox(width: 8),
-                      Expanded(child: _kpiBox("组休", "${ex.restSeconds}秒", isDark)),
+                      Expanded(child: _kpiBox('组间休息', '${ex.restSeconds}秒', isDark)),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 7,
+                    runSpacing: 7,
+                    children: [
+                      _miniTag('主练：${ex.targetMuscle}', AppTheme.electroOrange, isDark),
+                      ...ex.subMuscles.map(
+                        (s) => _miniTag(s, AppTheme.iceCyan, isDark),
+                      ),
+                      ...ex.secondaryMuscles.take(2).map(
+                        (s) => _miniTag('协同：$s', AppTheme.mintEmerald, isDark),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      _miniTag("主练：${ex.targetMuscle}", const Color(0xFFEA580C), isDark),
-                      ...ex.subMuscles.take(3).map(
-                            (s) => _miniTag(s, const Color(0xFF0284C7), isDark),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: AppTheme.innerTileDecoration(isDark, radius: 12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.air_rounded,
+                            size: 16, color: AppTheme.mintEmerald),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '呼吸配合：${ex.breathingTip}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.mintEmerald,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      const Icon(Icons.air_rounded, size: 15, color: Color(0xFF10B981)),
-                      const SizedBox(width: 6),
-                      const Expanded(
-                        child: Text(
-                          "呼吸口诀：下放吸气稳核心，发力推拉吐气",
-                          style: TextStyle(fontSize: 12, color: Color(0xFF10B981), fontWeight: FontWeight.w600),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
+
+            // 6. 常见代偿错误与防受伤纠正指南
+            if (ex.commonMistakes.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  const Icon(Icons.shield_outlined,
+                      color: AppTheme.emberRed, size: 19),
+                  const SizedBox(width: 6),
+                  Text(
+                    '常见代偿避坑与防伤指南',
+                    style: TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.textPrimary(isDark),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ...ex.commonMistakes.map(
+                (m) => Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: AppTheme.cardDecoration(isDark, radius: 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2.5),
+                            decoration: BoxDecoration(
+                              color: AppTheme.emberRed.withOpacity(0.16),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              '易错',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.emberRed,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              m.mistake,
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.textPrimary(isDark),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '✅ 纠正：${m.correction}',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.mintEmerald,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '⚠️ 风险：${m.risk}',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: AppTheme.textSecondary(isDark),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -410,83 +600,85 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
     required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accentColor.withOpacity(isDark ? 0.45 : 0.35), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: accentColor.withOpacity(isDark ? 0.08 : 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.16),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: accentColor, size: 16),
-                const SizedBox(width: 5),
-                Text(
-                  stepTag,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: accentColor,
-                  ),
+      decoration: AppTheme.cardDecoration(isDark, radius: 18),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(width: 4.5, color: accentColor),
+            Expanded(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 9, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: accentColor.withOpacity(isDark ? 0.16 : 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(icon, color: accentColor, size: 15),
+                          const SizedBox(width: 4),
+                          Text(
+                            stepTag,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w900,
+                              color: accentColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        cueText,
+                        style: TextStyle(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w800,
+                          height: 1.25,
+                          color: AppTheme.textPrimary(isDark),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              cueText,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                height: 1.25,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _kpiBox(String title, String val, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-        ),
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 4),
+      decoration: AppTheme.innerTileDecoration(isDark, radius: 14),
       child: Column(
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textSecondary(isDark),
+            ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 5),
           Text(
             val,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFFEA580C),
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w900,
+              color: isDark ? AppTheme.neonLime : AppTheme.electroOrange,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -498,17 +690,17 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
 
   Widget _miniTag(String text, Color color, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(isDark ? 0.16 : 0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withOpacity(isDark ? 0.16 : 0.10),
+        borderRadius: BorderRadius.circular(9),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: isDark ? color.withOpacity(0.95) : color,
+          fontWeight: FontWeight.w700,
+          color: color,
         ),
       ),
     );

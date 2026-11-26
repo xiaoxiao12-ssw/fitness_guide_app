@@ -6,6 +6,7 @@ import '../models/diet_entry.dart';
 import '../models/fat_loss_profile.dart';
 import '../services/diet_service.dart';
 import '../services/fat_loss_service.dart';
+import '../theme/app_theme.dart';
 
 class DietEstimatorPage extends StatefulWidget {
   const DietEstimatorPage({super.key});
@@ -469,17 +470,24 @@ class _DietEstimatorPageState extends State<DietEstimatorPage> {
                 children: [
                   // 1. 今日摄入与实时热量缺口看板
                   Container(
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: isDark
-                            ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                            : [const Color(0xFF0F172A), const Color(0xFF1E293B)],
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF141B29), Color(0xFF0C1018)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: Colors.white.withOpacity(0.08)),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (currentDeficit >= 0
+                                  ? AppTheme.neonLime
+                                  : AppTheme.emberRed)
+                              .withOpacity(0.16),
+                          blurRadius: 22,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,8 +503,8 @@ class _DietEstimatorPageState extends State<DietEstimatorPage> {
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: currentDeficit >= 0
-                                    ? const Color(0xFF10B981).withOpacity(0.2)
-                                    : const Color(0xFFEF4444).withOpacity(0.25),
+                                    ? AppTheme.neonLime.withOpacity(0.18)
+                                    : AppTheme.emberRed.withOpacity(0.22),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -505,16 +513,16 @@ class _DietEstimatorPageState extends State<DietEstimatorPage> {
                                     : "已超出 ${currentDeficit.abs()} kcal",
                                 style: TextStyle(
                                   color: currentDeficit >= 0
-                                      ? const Color(0xFF34D399)
+                                      ? AppTheme.neonLime
                                       : const Color(0xFFFCA5A5),
                                   fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -522,7 +530,7 @@ class _DietEstimatorPageState extends State<DietEstimatorPage> {
                               "$_todayCalories",
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 34,
+                                fontSize: 36,
                                 fontWeight: FontWeight.w900,
                                 height: 1,
                               ),
@@ -537,32 +545,32 @@ class _DietEstimatorPageState extends State<DietEstimatorPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                           child: LinearProgressIndicator(
                             value: ratio.clamp(0.0, 1.0),
                             minHeight: 8,
                             backgroundColor: Colors.white12,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               currentDeficit < 0
-                                  ? const Color(0xFFEF4444)
+                                  ? AppTheme.emberRed
                                   : ratio > 0.85
-                                      ? const Color(0xFFF59E0B)
-                                      : const Color(0xFF10B981),
+                                      ? AppTheme.electroOrange
+                                      : AppTheme.neonLime,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               "🥩 今日蛋白质：${_todayProtein.toStringAsFixed(1)} g",
                               style: const TextStyle(
-                                color: Color(0xFF38BDF8),
+                                color: AppTheme.iceCyan,
                                 fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                             Text(
@@ -580,30 +588,59 @@ class _DietEstimatorPageState extends State<DietEstimatorPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _pickMealPhoto(ImageSource.camera),
-                          icon: const Icon(Icons.camera_alt_rounded, size: 19),
-                          label: const Text("拍照估算热量", style: TextStyle(fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFEA580C),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [AppTheme.electroOrange, Color(0xFFFF8A00)],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.electroOrange.withOpacity(0.28),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: () => _pickMealPhoto(ImageSource.camera),
+                            icon: const Icon(Icons.camera_alt_rounded, size: 19),
+                            label: const Text("拍照估算热量", style: TextStyle(fontWeight: FontWeight.w900)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _pickMealPhoto(ImageSource.gallery),
-                          icon: const Icon(Icons.photo_library_rounded, size: 19),
-                          label: const Text("相册选图记录", style: TextStyle(fontWeight: FontWeight.bold)),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF10B981),
-                            side: const BorderSide(color: Color(0xFF10B981), width: 1.3),
-                            backgroundColor: const Color(0xFF10B981).withOpacity(isDark ? 0.12 : 0.06),
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _pickMealPhoto(ImageSource.gallery),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: AppTheme.cardDecoration(isDark, radius: 16),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.photo_library_rounded, size: 19, color: AppTheme.mintEmerald),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    "相册选图记录",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      color: AppTheme.mintEmerald,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -672,13 +709,7 @@ class _DietEstimatorPageState extends State<DietEstimatorPage> {
                         onTap: () => _quickAddFood(item),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                            ),
-                          ),
+                          decoration: AppTheme.cardDecoration(isDark, radius: 18),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -736,14 +767,8 @@ class _DietEstimatorPageState extends State<DietEstimatorPage> {
 
                   if (_todayEntries.isEmpty)
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                        ),
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 26, horizontal: 16),
+                      decoration: AppTheme.cardDecoration(isDark, radius: 20),
                       child: Column(
                         children: [
                           Icon(Icons.restaurant_menu_rounded, size: 36, color: Colors.grey[500]),
@@ -764,14 +789,8 @@ class _DietEstimatorPageState extends State<DietEstimatorPage> {
                           entry.imagePath!.isNotEmpty &&
                           File(entry.imagePath!).existsSync();
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                          ),
-                        ),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: AppTheme.cardDecoration(isDark, radius: 16),
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           leading: hasPhoto

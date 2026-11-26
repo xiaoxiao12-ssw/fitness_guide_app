@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/exercise.dart';
 import '../data/exercise_repository.dart';
 import '../services/favorite_service.dart';
+import '../theme/app_theme.dart';
 import 'exercise_detail_page.dart';
 
 class FavoritesPage extends StatefulWidget {
@@ -30,7 +31,6 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 
   Future<void> _loadFavorites() async {
-    setState(() => _isLoading = true);
     final ids = await FavoriteService.getFavoriteIds();
     final all = ExerciseRepository.getAllExercises();
     final favs = all.where((e) => ids.contains(e.id)).toList();
@@ -45,7 +45,6 @@ class _FavoritesPageState extends State<FavoritesPage> {
   Future<void> _removeFav(String id) async {
     HapticFeedback.lightImpact();
     await FavoriteService.toggleFavorite(id);
-    _loadFavorites();
   }
 
   @override
@@ -53,87 +52,163 @@ class _FavoritesPageState extends State<FavoritesPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("我的训练收藏夹"),
-      ),
+      appBar: AppBar(title: const Text('我的训练收藏夹')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _favoriteExercises.isEmpty
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.bookmark_border_rounded, size: 64, color: Colors.grey),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "暂无收藏的动作",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "在动作列表点击书签图标，即可将常用动作收藏于此，制定专属训练计划！",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                        ),
-                      ],
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 34, horizontal: 24),
+                      decoration: AppTheme.cardDecoration(isDark, radius: 24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppTheme.electroOrange.withOpacity(0.14),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.bookmark_border_rounded,
+                              size: 42,
+                              color: AppTheme.electroOrange,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '还没有收藏动作',
+                            style: TextStyle(
+                              fontSize: 16.5,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.textPrimary(isDark),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '在动作库点击书签图标，即可把今天要练的黄金动作加入专属计划！',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              height: 1.4,
+                              color: AppTheme.textSecondary(isDark),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
                   itemCount: _favoriteExercises.length,
                   itemBuilder: (context, index) {
                     final ex = _favoriteExercises[index];
+                    final cue = ExerciseRepository.getQuickCue(ex);
                     return Dismissible(
                       key: Key(ex.id),
                       direction: DismissDirection.endToStart,
                       background: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
                         alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
+                        padding: const EdgeInsets.only(right: 22),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade700,
-                          borderRadius: BorderRadius.circular(16),
+                          color: AppTheme.emberRed,
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Icon(Icons.delete_outline, color: Colors.white),
+                        child: const Icon(Icons.delete_outline_rounded,
+                            color: Colors.white),
                       ),
                       onDismissed: (_) => _removeFav(ex.id),
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                          ),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              ex.imageUrl0,
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.contain,
-                              errorBuilder: (ctx, err, stack) => const Icon(Icons.fitness_center_rounded),
+                        decoration: AppTheme.cardDecoration(isDark, radius: 20),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ExerciseDetailPage(exercise: ex),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: Container(
+                                      width: 64,
+                                      height: 64,
+                                      color: const Color(0xFFF4F7FC),
+                                      padding: const EdgeInsets.all(4),
+                                      child: Image.network(
+                                        ex.thumbUrl,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) => const Icon(
+                                          Icons.fitness_center_rounded,
+                                          color: AppTheme.electroOrange,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          ex.name,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppTheme.textPrimary(isDark),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          cue.action,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppTheme.iceCyan,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          '${ex.bodyPart} · ${ex.equipment} · ${ex.recommendedSets} · ${ex.repRange}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color:
+                                                AppTheme.textSecondary(isDark),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: AppTheme.textSecondary(isDark),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          title: Text(ex.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text(
-                            "${ex.bodyPart} · ${ex.equipment} · ${ex.subMuscles.join('/')}",
-                            style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                          ),
-                          trailing: const Icon(Icons.chevron_right_rounded),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (ctx) => ExerciseDetailPage(exercise: ex),
-                              ),
-                            ).then((_) => _loadFavorites());
-                          },
                         ),
                       ),
                     );
